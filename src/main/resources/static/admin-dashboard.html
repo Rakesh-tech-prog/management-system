@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizPro Admin | Industry Standard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --sidebar: #111827;
+            --bg: #f9fafb;
+        }			
+		
+		/* Pagination Styles */
+			.pagination-container {
+			    display: flex;
+			    justify-content: flex-end;
+			    align-items: center;
+			    margin-top: 20px;
+			    gap: 15px;
+			}
+			.btn-page {
+			    padding: 8px 16px;
+			    border: 1px solid #d1d5db;
+			    background: white;
+			    border-radius: 6px;
+			    cursor: pointer;
+			    font-size: 14px;
+			    font-weight: 500;
+			}
+			.btn-page:disabled {
+			    background: #f3f4f6;
+			    color: #9ca3af;
+			    cursor: not-allowed;
+			}
+			.page-info {
+			    font-size: 14px;
+			    color: #4b5563;
+			}
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--sidebar); color: white; position: fixed; height: 100vh; z-index: 10; }
+        .sidebar-logo { padding: 30px; font-size: 22px; font-weight: 700; color: var(--primary); border-bottom: 1px solid #1f2937; }
+        .nav-item { padding: 15px 30px; cursor: pointer; color: #9ca3af; transition: 0.3s; font-weight: 500; display: block; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #1f2937; color: white; border-left: 4px solid var(--primary); }
+
+        /* Content Area */
+        .main { flex: 1; margin-left: 260px; }
+        .header { height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; border-bottom: 1px solid #e5e7eb; }
+        .container { padding: 40px; max-width: 1200px; margin: 0 auto; }
+        
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active { display: block; }
+
+        .card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+		/* Table Headers & Cells alignment fix */
+		table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; } /* Layout fixed kiya */
+
+		th { 
+		    text-align: center; /* Headings center mein */
+		    padding: 12px 15px; 
+		    background: #f8fafc; 
+		    color: #64748b; 
+		    font-size: 12px; 
+		    text-transform: uppercase; 
+		    border-bottom: 2px solid #f1f5f9; 
+		}
+
+		td { 
+		    padding: 16px 15px; 
+		    border-bottom: 1px solid #f1f5f9; 
+		    font-size: 14px; 
+		    vertical-align: middle; 
+		    text-align: center;
+		}
+
+		/* Specific alignments for better look */
+		td:first-child { text-align: left; font-weight: 500; color: #1e293b; width: 35%; } /* Question hamesha left se start ho */
+		th:first-child { text-align: left; }
+
+		/* Buttons container fix */
+		.btn-group { 
+		    display: flex; 
+		    justify-content: center; /* Buttons center mein */
+		    gap: 8px; 
+		}
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-mcq { background: #e0e7ff; color: #4338ca; }
+        .badge-tf { background: #f3e8ff; color: #7e22ce; }
+        .badge-text { background: #ffedd5; color: #9a3412; }
+
+        .btn-action { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; border: none; transition: 0.2s; margin-right: 5px; }
+        .btn-edit { background: #dbeafe; color: #1e40af; }
+        .btn-delete { background: #fee2e2; color: #991b1b; }
+
+        .opt-row-display { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; text-align: left; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; }
+        .options-config { background: #f3f4f6; padding: 20px; border-radius: 10px; margin-top: 10px; }
+        .publish-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+
+        /* No Records Button Style */
+        .btn-empty-state {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-empty-state:hover { background: #4338ca; transform: translateY(-1px); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-logo">QUIZPRO</div>
+        <div class="nav-links">
+            <div id="nav-create" class="nav-item active" onclick="switchTab('create')">Create Question</div>
+            <div id="nav-view" class="nav-item" onclick="switchTab('view')">Question Bank</div>
+        </div>
+    </div>
+
+    <div class="main">
+        <header class="header">
+            <h2 id="tab-title" style="font-size: 18px;">Create New Question</h2>
+            <button onclick="logout()" style="color: #ef4444; border: none; background: none; font-weight: 600; cursor: pointer;">Logout</button>
+        </header>
+
+        <div class="container">
+            <div id="tab-create" class="section active">
+                <div class="card">
+                    <div class="form-group">
+                        <label>Question Content</label>
+                        <input type="text" id="questionText" placeholder="e.g. Is Java an Object Oriented Language?">
+                    </div>
+                    <div class="form-group">
+                        <label>Question Type</label>
+                        <select id="questionType" onchange="renderOptionsUI('optionsContainer', 'questionType')">
+                            <option value="MCQ">Multiple Choice (MCQ)</option>
+                            <option value="TRUE_FALSE" selected>True / False</option>
+                            <option value="TEXT">Text Answer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Configure Options</label>
+                        <div id="optionsContainer" class="options-config"></div>
+                    </div>
+                    <button class="publish-btn" id="btnPublish" onclick="submitQuestion()">Publish to Bank</button>
+                </div>
+            </div>
+
+			<div id="tab-view" class="section">
+			    <div class="card">
+			        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+			            <h3 style="font-size: 16px;">Active Question Bank</h3>
+			            <div style="display: flex; gap: 10px;">
+			                <input type="text" id="assessmentTitle" placeholder="Enter Assessment Title" style="width: 250px; padding: 8px;">
+			                <button class="publish-btn" style="width: auto; padding: 8px 20px;" onclick="finalSubmitAssessment()">Submit Assessment</button>
+			            </div>
+			        </div>
+			        <table>
+			            <thead>
+			                <tr>
+			                    <th>Question Details</th>
+			                    <th>Type</th>
+			                    <th>Options & Correct Answer</th>
+			                    <th>Actions</th>
+			                </tr>
+			            </thead>
+			            <tbody id="questionsTableBody">
+			            </tbody>
+			        </table>
+			    </div>
+			</div>
+
+<script>
+    const API_URL = "http://localhost:8080/admin";
+    let allQuestions = []; 
+	let currentPage = 0; // Pagination starts from 0
+	const pageSize = 5;
+	let currentAssessmentCode = "ASM-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+	function switchTab(tab) {
+	    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+	    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+	    document.getElementById('tab-' + tab).classList.add('active');
+	    document.getElementById('nav-' + tab).classList.add('active');
+	    document.getElementById('tab-title').innerText = tab === 'create' ? 'Create New Question' : 'Question Bank';
+	    if(tab === 'view') {
+	        currentPage = 0; // Reset to page 1 on tab switch
+	        fetchBank();
+	    }
+	}
+
+	function renderOptionsUI(containerId, typeDropdownId, existingData = null) {
+	    const type = document.getElementById(typeDropdownId).value;
+	    const container = document.getElementById(containerId);
+	    const configWrapper = container.closest('.form-group'); // Label aur container hide karne ke liye
+	    
+	    container.innerHTML = "";
+
+	    if (type === 'TEXT') {
+	        configWrapper.style.display = "none"; // Hide pura options section
+	        return;
+	    }
+
+	    configWrapper.style.display = "block"; // Show for MCQ and TF
+
+	    if(type === 'MCQ') {
+	        for(let i=0; i<4; i++) {
+	            const optVal = existingData ? (existingData[i]?.optionText || '') : '';
+	            const isChecked = existingData ? (existingData[i]?.correct || false) : false;
+	            container.innerHTML += `
+	                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+	                    <input type="text" class="mcq-input" value="${optVal}" placeholder="Option ${i+1}" style="background:white; width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+	                    <label style="font-size:12px; display:flex; align-items:center; gap:5px; white-space:nowrap;">
+	                        <input type="radio" name="correct-mcq" ${isChecked ? 'checked' : ''} style="width:15px;"> Correct
+	                    </label>
+	                </div>`;
+	        }
+	    } else if (type === 'TRUE_FALSE') {
+	        const isTrueCorrect = existingData ? existingData.find(o => o.optionText === "True")?.correct : true;
+	        container.innerHTML = `
+	            <div style="display:flex; align-items:center; gap:40px; padding: 5px 0;">
+	                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+	                    <input type="radio" name="correct-tf" value="True" ${isTrueCorrect ? 'checked' : ''} style="width:18px; height:18px;"> True
+	                </label>
+	                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+	                    <input type="radio" name="correct-tf" value="False" ${!isTrueCorrect ? 'checked' : ''} style="width:18px; height:18px;"> False
+	                </label>
+	            </div>`;
+	    }
+	}
+
+	function fetchBank() {
+		        const token = localStorage.getItem("jwt");
+		        const tbody = document.getElementById('questionsTableBody');
+		        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 20px;'>Syncing...</td></tr>";
+
+		        fetch(`${API_URL}/questions?pageNo=${currentPage}&pageRecords=${pageSize}`, { 
+		            headers: { "Authorization": "Bearer " + token } 
+		        })
+		        .then(res => res.json())
+		        .then(response => {
+		            allQuestions = response.data || []; 
+		            const totalRecords = response.totalRecords || 0;
+		            
+		            tbody.innerHTML = "";
+		            
+		            if (allQuestions.length === 0) {
+		                tbody.innerHTML = `<tr><td colspan='4' style='text-align:center; padding: 60px 20px;'>
+		                    <div style='font-size: 40px; margin-bottom: 10px;'>📂</div>
+		                    <div style='font-size: 18px; font-weight: 600; color: #1f2937;'>No Records Found</div>
+		                    <button class="btn-empty-state" onclick="switchTab('create')">+ Add First Question</button>
+		                </td></tr>`;
+		                removePaginationControls();
+		                return;
+		            }
+
+		            allQuestions.forEach(q => {
+		                let badgeClass = q.questionType === 'TRUE_FALSE' ? 'badge-tf' : (q.questionType === 'TEXT' ? 'badge-text' : 'badge-mcq');
+		                const optionsHtml = q.options.map(o => {
+		                    const isCorrect = o.correct === true;
+		                    const style = isCorrect && q.questionType !== 'TEXT' ? 'color:var(--success); font-weight:600;' : 'color:#64748b;';
+		                    return `<div class="opt-row-display" style="${style}">${q.questionType === 'TEXT' ? '' : '• '}${o.optionText} ${isCorrect && q.questionType !== 'TEXT' ? '✓' : ''}</div>`;
+		                }).join("");
+
+						tbody.innerHTML += `
+						    <tr>
+						        <td style="max-width:350px; line-height:1.5;">${q.questionText}</td>
+						        <td><span class="badge ${badgeClass}">${q.questionType}</span></td>
+						        <td style="text-align: left; padding-left: 40px;">${optionsHtml}</td> <td>
+						            <div class="btn-group">
+						                <button class="btn-action btn-edit" onclick="openEditModal(${q.id})">Edit</button>
+						                <button class="btn-action btn-delete" onclick="deleteQuestion(${q.id})">Delete</button>
+						            </div>
+						        </td>
+						    </tr>`;
+		            });
+
+		            if (totalRecords > pageSize) {
+		                renderPagination(totalRecords);
+		            } else {
+		                removePaginationControls();
+		            }
+		        })
+		        .catch(err => {
+		            console.error("Error fetching data:", err);
+		            tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error loading data.</td></tr>";
+		        });
+		    }
+		
+			async function finalSubmitAssessment() {
+			    const titleInput = document.getElementById('assessmentTitle');
+			    const title = titleInput.value.trim();
+			    const token = localStorage.getItem("jwt");
+
+			    if (!title) {
+			        Swal.fire('Error', 'Please enter an Assessment Title', 'error');
+			        return;
+			    }
+
+			    Swal.fire({
+			        title: 'Fetching all questions...',
+			        allowOutsideClick: false,
+			        didOpen: () => { Swal.showLoading(); }
+			    });
+
+			    try {
+			      
+			        const res = await fetch(`${API_URL}/questions?pageNo=0&pageRecords=1000`, { 
+			            headers: { "Authorization": "Bearer " + token } 
+			        });
+			        const responseData = await res.json();
+			        
+			      
+			        const allQuestionsList = responseData.data || [];
+			        const allIds = allQuestionsList.map(q => q.id);
+
+			        if (allIds.length === 0) {
+			            Swal.fire('Error', 'Question bank is empty. Add some questions first.', 'error');
+			            return;
+			        }
+
+			        const assessmentRequest = {
+			            title: title,
+			            assessmentCode: currentAssessmentCode,
+			            questionIds: allIds 
+			        };
+
+			     
+			        const submitRes = await fetch(`${API_URL}/submit-assessment`, {
+			            method: "POST",
+			            headers: { 
+			                "Content-Type": "application/json", 
+			                "Authorization": "Bearer " + token 
+			            },
+			            body: JSON.stringify(assessmentRequest)
+			        });
+
+			        if (submitRes.ok) {
+			            Swal.fire('Success', `Assessment "${title}" created with all ${allIds.length} questions!`, 'success');
+			            titleInput.value = "";
+			          
+			            currentAssessmentCode = "ASM-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+			        } else {
+			            throw new Error("Server rejected the assessment");
+			        }
+
+			    } catch (err) {
+			        Swal.fire('Error', 'Failed to save assessment. Check connection or backend.', 'error');
+			        console.error(err);
+			    }
+			}
+	
+	function renderPagination(totalRecords) {
+	    const totalPages = Math.ceil(totalRecords / pageSize);
+	    let paginationUI = document.getElementById('paginationControls');
+	    
+	    if (!paginationUI) {
+	        paginationUI = document.createElement('div');
+	        paginationUI.id = 'paginationControls';
+	        paginationUI.className = 'pagination-container';
+	        document.querySelector('#tab-view .card').appendChild(paginationUI);
+	    }
+
+	    paginationUI.innerHTML = `
+	        <span class="page-info">Page ${currentPage + 1} of ${totalPages}</span>
+	        <button class="btn-page" onclick="changePage(-1)" ${currentPage === 0 ? 'disabled' : ''}>Previous</button>
+	        <button class="btn-page" onclick="changePage(1)" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next</button>
+	    `;
+	}
+	
+	function removePaginationControls() {
+	    const paginationUI = document.getElementById('paginationControls');
+	    if (paginationUI) paginationUI.remove();
+	}
+	
+	function changePage(step) {
+	    currentPage += step;
+	    fetchBank();
+	}
+
+    function openEditModal(id) {
+        const q = allQuestions.find(item => item.id === id);
+        Swal.fire({
+            title: 'Edit Question',
+            html: `
+                <div style="text-align:left;">
+                    <label>Question Content</label>
+                    <input type="text" id="editQText" class="swal2-input" value="${q.questionText}" style="width:100%; margin: 10px 0;">
+                    <label>Type</label>
+                    <select id="editQType" class="swal2-input" style="width:100%; margin: 10px 0;" onchange="renderOptionsUI('editOptionsContainer', 'editQType')">
+                        <option value="MCQ" ${q.questionType === 'MCQ' ? 'selected' : ''}>MCQ</option>
+                        <option value="TRUE_FALSE" ${q.questionType === 'TRUE_FALSE' ? 'selected' : ''}>True/False</option>
+                        <option value="TEXT" ${q.questionType === 'TEXT' ? 'selected' : ''}>Text</option>
+                    </select>
+                    <div id="editOptionsContainer" class="options-config"></div>
+                </div>`,
+            showCancelButton: true,
+            confirmButtonText: 'Update Question',
+            confirmButtonColor: '#4f46e5',
+            didOpen: () => { renderOptionsUI('editOptionsContainer', 'editQType', q.options); },
+            preConfirm: () => { 
+                return collectFormData('editQText', 'editQType', '.mcq-input', 'correct-mcq', 'correct-tf', 'textAnswer'); 
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                fetch(`${API_URL}/update/${id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + localStorage.getItem("jwt") },
+                    body: JSON.stringify(result.value)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire('Updated!', 'Question updated successfully', 'success');
+                    fetchBank();
+                });
+            }
+        });
+    }
+
+	function collectFormData(qTextId, qTypeId, mcqClass, mcqRadioName, tfRadioName, textId) {
+		    const textElement = document.getElementById(qTextId);
+		    if(!textElement) return null;
+		    const text = textElement.value.trim();
+		    const type = document.getElementById(qTypeId).value;
+		    const container = textElement.closest('.card') || document;
+		    
+		    if(!text) { 
+	            Swal.fire('Validation Error', 'Question text is required', 'warning'); 
+	            return null; 
+	        }
+		    
+		    let options = [];
+		    if(type === 'MCQ') {
+		        const inputs = container.querySelectorAll(mcqClass);
+		        const radios = container.querySelectorAll(`input[name="${mcqRadioName}"]`);
+	            
+	            // --- VALIDATION START ---
+	            let hasCorrect = false;
+	            radios.forEach(r => { if(r.checked) hasCorrect = true; });
+	            
+	            if(!hasCorrect) {
+	                Swal.fire('Validation Error', 'Please select at least one correct option for MCQ', 'warning');
+	                return null;
+	            }
+	            // --- VALIDATION END ---
+
+		        inputs.forEach((input, index) => {
+		            if(input.value.trim()) options.push({ optionText: input.value, correct: radios[index].checked });
+		        });
+	            
+	            if(options.length === 0) {
+	                Swal.fire('Validation Error', 'Please provide option text for MCQ', 'warning');
+	                return null;
+	            }
+
+		    } else if (type === 'TRUE_FALSE') {
+		        const selectedRadio = container.querySelector(`input[name="${tfRadioName}"]:checked`);
+	            
+	            // --- VALIDATION START ---
+	            if(!selectedRadio) {
+	                Swal.fire('Validation Error', 'Please select whether True or False is correct', 'warning');
+	                return null;
+	            }
+	            // --- VALIDATION END ---
+
+		        const isTrue = selectedRadio.value === "True";
+		        options = [{ optionText: "True", correct: isTrue }, { optionText: "False", correct: !isTrue }];
+		    } else if (type === 'TEXT') {
+		        options = [{ optionText: "TEXT_ANSWER", correct: true }];
+		    }
+		    return { questionText: text, questionType: type, options: options };
+		}
+
+    function deleteQuestion(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Delete'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`${API_URL}/delete/${id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": "Bearer " + localStorage.getItem("jwt") }
+                }).then(() => {
+                    Swal.fire('Deleted!', 'Question removed.', 'success');
+                    fetchBank();
+                });
+            }
+        });
+    }
+
+	function submitQuestion() {
+	    const payload = collectFormData('questionText', 'questionType', '.mcq-input', 'correct-mcq', 'correct-tf', 'textAnswer');
+	    if(!payload) return;
+
+	    fetch(`${API_URL}/create`, {
+	        method: "POST",
+	        headers: { 
+	            "Content-Type": "application/json", 
+	            "Authorization": "Bearer " + localStorage.getItem("jwt") 
+	        },
+	        body: JSON.stringify(payload)
+	    }).then(res => {
+	        if(res.ok) {
+	            Swal.fire('Success', 'Question Added!', 'success');
+	            document.getElementById('questionText').value = "";
+	            // UI reset
+	            renderOptionsUI('optionsContainer', 'questionType');
+	        } else {
+	            Swal.fire('Error', 'Server error while saving', 'error');
+	        }
+	    }).catch(err => {
+	        Swal.fire('Error', 'Connection failed', 'error');
+	    });
+	}
+
+    function logout() { localStorage.clear(); window.location.href = "login.html"; }
+    renderOptionsUI('optionsContainer', 'questionType');
+</script>
+</body>
+</html>

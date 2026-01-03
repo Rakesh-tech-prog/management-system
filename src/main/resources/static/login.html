@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Portal | Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+ 
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #030712;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            overflow: hidden;
+        }
+
+        /* Glassmorphic Login Card */
+        .login-card {
+            width: 90%;
+            max-width: 400px;
+            background: var(--glass);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 32px;
+            padding: 48px 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: popIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        h2 { color: #0f172a; font-weight: 800; font-size: 28px; margin-bottom: 8px; }
+        p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 32px; font-weight: 500; }
+
+    
+        .input-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; font-size: 12px; font-weight: 800; color: var(--primary); margin-bottom: 8px; letter-spacing: 0.5px; }
+        
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.3s;
+            outline: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        /* Dynamic Button */
+        button {
+            width: 100%;
+            padding: 16px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        button:active { transform: translateY(0); }
+
+        #error { color: #ef4444; font-size: 13px; font-weight: 700; margin-top: 15px; display: none; }
+
+        /* Loader Animation */
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>Welcome back</h2>
+        <p class="subtitle">Enter your credentials to continue</p>
+        
+        <div class="input-group">
+            <label>USERNAME</label>
+            <input type="text" id="user" placeholder="e.g. example@gmail.com" autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <label>PASSWORD</label>
+            <input type="password" id="pass" placeholder="••••••••">
+        </div>
+
+        <button id="loginBtn" onclick="doLogin()">
+            <span id="btnText">SIGN IN</span>
+            <div id="loader" class="loader"></div>
+        </button>
+
+        <p id="error">Invalid credentials. Please try again.</p>
+    </div>
+
+    <script>
+		async function doLogin() {
+		            const usernameInput = document.getElementById("user").value; // Input field se username liya
+		            const password = document.getElementById("pass").value;
+		            const btnText = document.getElementById("btnText");
+		            const loader = document.getElementById("loader");
+		            const errorMsg = document.getElementById("error");
+
+		      
+		            errorMsg.style.display = "none";
+		            btnText.style.display = "none";
+		            loader.style.display = "block";
+
+		            try {
+		                const res = await fetch("http://localhost:8080/auth/login", {
+		                    method: "POST",
+		                    headers: { "Content-Type": "application/json" },
+		                    body: JSON.stringify({ username: usernameInput, password })
+		                });
+
+		                if (!res.ok) throw new Error("Unauthorized");
+
+		                const data = await res.json();
+		                
+		               
+		                localStorage.setItem("jwt", data.token);
+		            
+		                localStorage.setItem("username", usernameInput); 
+		               
+		                const userRole = data.role; 
+
+		                if (userRole === "ADMIN") {
+		                    window.location.href = "admin-dashboard.html";
+		                } else {
+		                    window.location.href = "public-quiz.html";
+		                }
+
+		            } catch (err) {
+		                loader.style.display = "none";
+		                btnText.style.display = "block";
+		                errorMsg.style.display = "block";
+		            }
+		        }
+    </script>
+</body>
+</html>
