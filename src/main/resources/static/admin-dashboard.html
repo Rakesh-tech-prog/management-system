@@ -210,38 +210,45 @@
 	function renderOptionsUI(containerId, typeDropdownId, existingData = null) {
 	    const type = document.getElementById(typeDropdownId).value;
 	    const container = document.getElementById(containerId);
-	    const configWrapper = container.closest('.form-group'); // Label aur container hide karne ke liye
 	    
+	    if (!container) return;
+
+	    // Sirf options wale grey box (container) ko hide/show karenge
+	    // Poore form-group (wrapper) ko touch nahi karenge taaki dropdown dikhta rahe
 	    container.innerHTML = "";
 
 	    if (type === 'TEXT') {
-	        configWrapper.style.display = "none"; // Hide pura options section
+	        container.style.display = "none"; // Sirf options box gayab hoga
 	        return;
 	    }
 
-	    configWrapper.style.display = "block"; // Show for MCQ and TF
+	    container.style.display = "block"; // MCQ/TF ke liye vapas dikhayenge
 
 	    if(type === 'MCQ') {
 	        for(let i=0; i<4; i++) {
 	            const optVal = existingData ? (existingData[i]?.optionText || '') : '';
 	            const isChecked = existingData ? (existingData[i]?.correct || false) : false;
+	            const radioName = containerId === 'editOptionsContainer' ? 'edit-correct-mcq' : 'correct-mcq';
+	            
 	            container.innerHTML += `
 	                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
 	                    <input type="text" class="mcq-input" value="${optVal}" placeholder="Option ${i+1}" style="background:white; width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
 	                    <label style="font-size:12px; display:flex; align-items:center; gap:5px; white-space:nowrap;">
-	                        <input type="radio" name="correct-mcq" ${isChecked ? 'checked' : ''} style="width:15px;"> Correct
+	                        <input type="radio" name="${radioName}" ${isChecked ? 'checked' : ''} style="width:15px;"> Correct
 	                    </label>
 	                </div>`;
 	        }
 	    } else if (type === 'TRUE_FALSE') {
 	        const isTrueCorrect = existingData ? existingData.find(o => o.optionText === "True")?.correct : true;
+	        const radioName = containerId === 'editOptionsContainer' ? 'edit-correct-tf' : 'correct-tf';
+	        
 	        container.innerHTML = `
 	            <div style="display:flex; align-items:center; gap:40px; padding: 5px 0;">
 	                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-	                    <input type="radio" name="correct-tf" value="True" ${isTrueCorrect ? 'checked' : ''} style="width:18px; height:18px;"> True
+	                    <input type="radio" name="${radioName}" value="True" ${isTrueCorrect ? 'checked' : ''} style="width:18px; height:18px;"> True
 	                </label>
 	                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-	                    <input type="radio" name="correct-tf" value="False" ${!isTrueCorrect ? 'checked' : ''} style="width:18px; height:18px;"> False
+	                    <input type="radio" name="${radioName}" value="False" ${!isTrueCorrect ? 'checked' : ''} style="width:18px; height:18px;"> False
 	                </label>
 	            </div>`;
 	    }
@@ -396,98 +403,50 @@
 	    fetchBank();
 	}
 
-    function openEditModal(id) {
-        const q = allQuestions.find(item => item.id === id);
-        Swal.fire({
-            title: 'Edit Question',
-            html: `
-                <div style="text-align:left;">
-                    <label>Question Content</label>
-                    <input type="text" id="editQText" class="swal2-input" value="${q.questionText}" style="width:100%; margin: 10px 0;">
-                    <label>Type</label>
-                    <select id="editQType" class="swal2-input" style="width:100%; margin: 10px 0;" onchange="renderOptionsUI('editOptionsContainer', 'editQType')">
-                        <option value="MCQ" ${q.questionType === 'MCQ' ? 'selected' : ''}>MCQ</option>
-                        <option value="TRUE_FALSE" ${q.questionType === 'TRUE_FALSE' ? 'selected' : ''}>True/False</option>
-                        <option value="TEXT" ${q.questionType === 'TEXT' ? 'selected' : ''}>Text</option>
-                    </select>
-                    <div id="editOptionsContainer" class="options-config"></div>
-                </div>`,
-            showCancelButton: true,
-            confirmButtonText: 'Update Question',
-            confirmButtonColor: '#4f46e5',
-            didOpen: () => { renderOptionsUI('editOptionsContainer', 'editQType', q.options); },
-            preConfirm: () => { 
-                return collectFormData('editQText', 'editQType', '.mcq-input', 'correct-mcq', 'correct-tf', 'textAnswer'); 
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                fetch(`${API_URL}/update/${id}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + localStorage.getItem("jwt") },
-                    body: JSON.stringify(result.value)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    Swal.fire('Updated!', 'Question updated successfully', 'success');
-                    fetchBank();
-                });
-            }
-        });
-    }
-
-	function collectFormData(qTextId, qTypeId, mcqClass, mcqRadioName, tfRadioName, textId) {
-		    const textElement = document.getElementById(qTextId);
-		    if(!textElement) return null;
-		    const text = textElement.value.trim();
-		    const type = document.getElementById(qTypeId).value;
-		    const container = textElement.closest('.card') || document;
-		    
-		    if(!text) { 
-	            Swal.fire('Validation Error', 'Question text is required', 'warning'); 
-	            return null; 
+	
+	function openEditModal(id) {
+	    const q = allQuestions.find(item => item.id === id);
+	    Swal.fire({
+	        title: 'Edit Question',
+	        html: `
+	            <div style="text-align:left;" id="modalContext">
+	                <label>Question Content</label>
+	                <input type="text" id="editQText" class="swal2-input" value="${q.questionText}" style="width:100%; margin: 10px 0;">
+	                <label>Type</label>
+	                <select id="editQType" class="swal2-input" style="width:100%; margin: 10px 0;" onchange="renderOptionsUI('editOptionsContainer', 'editQType')">
+	                    <option value="MCQ" ${q.questionType === 'MCQ' ? 'selected' : ''}>MCQ</option>
+	                    <option value="TRUE_FALSE" ${q.questionType === 'TRUE_FALSE' ? 'selected' : ''}>True/False</option>
+	                    <option value="TEXT" ${q.questionType === 'TEXT' ? 'selected' : ''}>Text</option>
+	                </select>
+	                <div id="editOptionsContainer" class="options-config"></div>
+	            </div>`,
+	        showCancelButton: true,
+	        confirmButtonText: 'Update Question',
+	        confirmButtonColor: '#4f46e5',
+	        didOpen: () => { 
+	            // modal ke dropdown ke change event ko trigger karne ke liye
+	            renderOptionsUI('editOptionsContainer', 'editQType', q.options); 
+	        },
+	        preConfirm: () => { 
+	            // Specific radio names pass kiye hain jo renderOptionsUI mein diye gaye hain
+	            return collectFormData('editQText', 'editQType', '.mcq-input', 'edit-correct-mcq', 'edit-correct-tf', 'textAnswer', '#modalContext'); 
 	        }
-		    
-		    let options = [];
-		    if(type === 'MCQ') {
-		        const inputs = container.querySelectorAll(mcqClass);
-		        const radios = container.querySelectorAll(`input[name="${mcqRadioName}"]`);
-	            
-	            // --- VALIDATION START ---
-	            let hasCorrect = false;
-	            radios.forEach(r => { if(r.checked) hasCorrect = true; });
-	            
-	            if(!hasCorrect) {
-	                Swal.fire('Validation Error', 'Please select at least one correct option for MCQ', 'warning');
-	                return null;
-	            }
-	            // --- VALIDATION END ---
+	    }).then((result) => {
+	        if (result.isConfirmed && result.value) {
+	            fetch(`${API_URL}/update/${id}`, {
+	                method: "POST",
+	                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + localStorage.getItem("jwt") },
+	                body: JSON.stringify(result.value)
+	            })
+	            .then(res => res.json())
+	            .then(data => {
+	                Swal.fire('Updated!', 'Question updated successfully', 'success');
+	                fetchBank();
+	            });
+	        }
+	    });
+	}
 
-		        inputs.forEach((input, index) => {
-		            if(input.value.trim()) options.push({ optionText: input.value, correct: radios[index].checked });
-		        });
-	            
-	            if(options.length === 0) {
-	                Swal.fire('Validation Error', 'Please provide option text for MCQ', 'warning');
-	                return null;
-	            }
-
-		    } else if (type === 'TRUE_FALSE') {
-		        const selectedRadio = container.querySelector(`input[name="${tfRadioName}"]:checked`);
-	            
-	            // --- VALIDATION START ---
-	            if(!selectedRadio) {
-	                Swal.fire('Validation Error', 'Please select whether True or False is correct', 'warning');
-	                return null;
-	            }
-	            // --- VALIDATION END ---
-
-		        const isTrue = selectedRadio.value === "True";
-		        options = [{ optionText: "True", correct: isTrue }, { optionText: "False", correct: !isTrue }];
-		    } else if (type === 'TEXT') {
-		        options = [{ optionText: "TEXT_ANSWER", correct: true }];
-		    }
-		    return { questionText: text, questionType: type, options: options };
-		}
 
     function deleteQuestion(id) {
         Swal.fire({
@@ -509,6 +468,57 @@
         });
     }
 
+	function collectFormData(qTextId, qTypeId, mcqClass, mcqRadioName, tfRadioName, textId, contextSelector = 'body') {
+	    const context = document.querySelector(contextSelector);
+	    const textElement = context.querySelector('#' + qTextId);
+	    if(!textElement) return null;
+	    
+	    const text = textElement.value.trim();
+	    const type = context.querySelector('#' + qTypeId).value;
+	    
+	    if(!text) { 
+	        Swal.fire('Validation Error', 'Question text is required', 'warning'); 
+	        return null; 
+	    }
+	    
+	    let options = [];
+	    if(type === 'MCQ') {
+	        const inputs = context.querySelectorAll(mcqClass);
+	        const radios = context.querySelectorAll(`input[name="${mcqRadioName}"]`);
+	        
+	        let hasCorrect = false;
+	        radios.forEach(r => { if(r.checked) hasCorrect = true; });
+	        
+	        if(!hasCorrect) {
+	            Swal.fire('Validation Error', 'Please select at least one correct option', 'warning');
+	            return null;
+	        }
+
+	        inputs.forEach((input, index) => {
+	            if(input.value.trim()) {
+	                options.push({ optionText: input.value, correct: radios[index].checked });
+	            }
+	        });
+	        
+	        if(options.length === 0) {
+	            Swal.fire('Validation Error', 'Please provide option text for MCQ', 'warning');
+	            return null;
+	        }
+
+	    } else if (type === 'TRUE_FALSE') {
+	        const selectedRadio = context.querySelector(`input[name="${tfRadioName}"]:checked`);
+	        if(!selectedRadio) {
+	            Swal.fire('Validation Error', 'Please select True or False', 'warning');
+	            return null;
+	        }
+	        const isTrue = selectedRadio.value === "True";
+	        options = [{ optionText: "True", correct: isTrue }, { optionText: "False", correct: !isTrue }];
+	    } else if (type === 'TEXT') {
+	        options = [{ optionText: "TEXT_ANSWER", correct: true }];
+	    }
+	    return { questionText: text, questionType: type, options: options };
+	}
+	
 	function submitQuestion() {
 	    const payload = collectFormData('questionText', 'questionType', '.mcq-input', 'correct-mcq', 'correct-tf', 'textAnswer');
 	    if(!payload) return;
