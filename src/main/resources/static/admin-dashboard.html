@@ -212,17 +212,14 @@
 	    const container = document.getElementById(containerId);
 	    
 	    if (!container) return;
-
-	    // Sirf options wale grey box (container) ko hide/show karenge
-	    // Poore form-group (wrapper) ko touch nahi karenge taaki dropdown dikhta rahe
 	    container.innerHTML = "";
 
 	    if (type === 'TEXT') {
-	        container.style.display = "none"; // Sirf options box gayab hoga
+	        container.style.display = "none";
 	        return;
 	    }
 
-	    container.style.display = "block"; // MCQ/TF ke liye vapas dikhayenge
+	    container.style.display = "block"; 
 
 	    if(type === 'MCQ') {
 	        for(let i=0; i<4; i++) {
@@ -424,11 +421,11 @@
 	        confirmButtonText: 'Update Question',
 	        confirmButtonColor: '#4f46e5',
 	        didOpen: () => { 
-	            // modal ke dropdown ke change event ko trigger karne ke liye
+	          
 	            renderOptionsUI('editOptionsContainer', 'editQType', q.options); 
 	        },
 	        preConfirm: () => { 
-	            // Specific radio names pass kiye hain jo renderOptionsUI mein diye gaye hain
+	        
 	            return collectFormData('editQText', 'editQType', '.mcq-input', 'edit-correct-mcq', 'edit-correct-tf', 'textAnswer', '#modalContext'); 
 	        }
 	    }).then((result) => {
