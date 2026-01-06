@@ -50,14 +50,22 @@ public class QuestionServiceImp implements QuestionService {
 	/*
 	 * Admin creates question
 	 */
-	@Override
+		@Override
 	@Transactional
 	public Question createQuestion(QuestionRequest request) {
 		logger.info("Creating question: {}", request.getQuestionText());
 		try {
+			Question question;
 			validateQuestionRequest(request);
-
-			Question question = new Question();
+			Optional<Question> existingQuestion = questionRepository
+					.findByQuestionTextIgnoreCase(request.getQuestionText().trim());
+			if (existingQuestion.isPresent()) {
+				question = existingQuestion.get();
+				logger.info("Duplicate found! Updating existing question ID: {}", question.getId());
+				question.getOptions().clear();
+			} else {
+				question = new Question();
+			}
 			question.setQuestionText(request.getQuestionText());
 			question.setQuestionType(request.getQuestionType());
 
