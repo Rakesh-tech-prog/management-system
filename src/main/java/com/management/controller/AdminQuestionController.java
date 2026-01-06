@@ -39,16 +39,10 @@ public class AdminQuestionController {
 	 *  Admin creates question
 	 */
 	@PostMapping("/question")
-	public ResponseEntity<QuestionResponse> createQuestions(@RequestBody @Valid QuestionRequest request) {
-		logger.info("Admin creating a new question");
-		Question q = adminQuestionService.createQuestion(request);
+	public ResponseEntity<ApiResponse> createQuestions(@RequestBody @Valid QuestionRequest request) {
+		ApiResponse apiResponse = adminQuestionService.createQuestion(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
 
-		QuestionResponse res = new QuestionResponse();
-		res.setId(q.getId());
-		res.setQuestionText(q.getQuestionText());
-		res.setQuestionType(q.getQuestionType());
-
-		return ResponseEntity.status(HttpStatus.CREATED).body(res);
 	}
 
 	/**
