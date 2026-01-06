@@ -1,6 +1,5 @@
 package com.management.controller;
 
-import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,8 @@ import com.management.model.QuestionRequest;
 import com.management.response.ApiResponse;
 import com.management.response.QuestionResponse;
 import com.management.service.QuestionService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/admin")

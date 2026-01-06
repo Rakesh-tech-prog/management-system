@@ -1,8 +1,8 @@
 package com.management.model;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class LoginRequest {
 	@NotBlank(message = "Username is required")
@@ -16,7 +16,6 @@ public class LoginRequest {
 			)
 	@Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
 	private String password;
-
 	public String getUsername() {
 		return username;
 	}

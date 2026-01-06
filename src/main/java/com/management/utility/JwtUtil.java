@@ -5,8 +5,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -14,6 +12,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtUtil {

@@ -1,12 +1,12 @@
 package com.management.validator;
 import java.util.List;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
 import com.management.enm.QuestionType;
 import com.management.model.OptionRequest;
 import com.management.model.QuestionRequest;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class QuestionValidator
         implements ConstraintValidator<ValidQuestion, QuestionRequest> {
