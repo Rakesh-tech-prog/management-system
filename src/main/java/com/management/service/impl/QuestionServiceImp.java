@@ -53,10 +53,11 @@ public class QuestionServiceImp implements QuestionService {
 	 */
 	@Override
 	@Transactional
-	public Question createQuestion(QuestionRequest request) {
+	public ApiResponse createQuestion(QuestionRequest request) {
 		logger.info("Creating question: {}", request.getQuestionText());
 		try {
 			Question question;
+				QuestionResponse res = new QuestionResponse();
 			validateQuestionRequest(request);
 			Optional<Question> existingQuestion = questionRepository
 					.findByQuestionTextIgnoreCase(request.getQuestionText().trim());
@@ -71,8 +72,11 @@ public class QuestionServiceImp implements QuestionService {
 			question.setQuestionType(request.getQuestionType());
 
 			mapOptionsToEntity(request.getOptions(), question);
-
-			return questionRepository.save(question);
+            res.setId(question.getId());
+			res.setQuestionText(question.getQuestionText());
+			res.setQuestionType(question.getQuestionType());
+			 questionRepository.save(question);
+				return new ApiResponse("Question created successfully", "Success", 200, null, 0);
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error creating question: {}", e.getMessage());
