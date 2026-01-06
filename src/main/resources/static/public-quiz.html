@@ -130,7 +130,7 @@
 	    const container = document.getElementById('main-view');
 	    const nxtBtn = document.getElementById('nxt');
 	    
-	    document.getElementById('step-title').innerText = `STEP ${state.currentIdx + 1} OF ${state.questions.length}`;
+	    document.getElementById('step-title').innerText = `Question ${state.currentIdx + 1} OF ${state.questions.length}`;
 	    document.getElementById('fill').style.width = `${((state.currentIdx + 1) / state.questions.length) * 100}%`;
 
 	    let html = `<div class="question-text">${q.questionText}</div>`;
