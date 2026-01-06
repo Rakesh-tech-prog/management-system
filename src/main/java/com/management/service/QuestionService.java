@@ -8,7 +8,7 @@ import com.management.response.ApiResponse;
 
 public interface QuestionService {
 
-	public Question createQuestion(QuestionRequest req);
+	public ApiResponse createQuestion(QuestionRequest req);
 	public ApiResponse getAllQuestions(int pageNo, int pageRecords);
 	public ApiResponse submitAssessment(AssessmentRequest request);
 	public ApiResponse getAllQuestions();
