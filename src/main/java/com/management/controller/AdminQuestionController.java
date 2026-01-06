@@ -34,20 +34,12 @@ public class AdminQuestionController {
 		this.adminQuestionService = adminQuestionService;
 	}
 
-	/**
-	 *  Admin dashboard – list questions
-	 */
-	@GetMapping("/questions")
-	public ResponseEntity<ApiResponse> getAll(@RequestParam int pageNo, @RequestParam int pageRecords) {
-		logger.info("Admin requested all questions");
-		return ResponseEntity.ok(adminQuestionService.getAllQuestions(pageNo, pageRecords));
-	}
-	
+
 	/**
 	 *  Admin creates question
 	 */
-	@PostMapping("/create")
-	public ResponseEntity<QuestionResponse> create(@RequestBody @Valid QuestionRequest request) {
+	@PostMapping("/question")
+	public ResponseEntity<QuestionResponse> createQuestions(@RequestBody @Valid QuestionRequest request) {
 		logger.info("Admin creating a new question");
 		Question q = adminQuestionService.createQuestion(request);
 
@@ -62,8 +54,8 @@ public class AdminQuestionController {
 	/**
 	 *  Admin updates question
 	 */
-	@PostMapping("/update/{id}")
-	public ResponseEntity<ApiResponse> update(@PathVariable Long id, @RequestBody QuestionRequest request) {
+	@PostMapping("/question/{id}")
+	public ResponseEntity<ApiResponse> updateQuestion(@PathVariable Long id, @RequestBody QuestionRequest request) {
 		logger.info("Admin updating question with ID: {}", id);
 		ApiResponse updateQuestion = adminQuestionService.updateQuestion(id, request);
 
@@ -74,16 +66,25 @@ public class AdminQuestionController {
 	 *  Admin deletes question
 	 */
 
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<ApiResponse> delete(@PathVariable Long id) {
+	@DeleteMapping("/question/{id}")
+	public ResponseEntity<ApiResponse> deleteQuestion(@PathVariable Long id) {
 		logger.info("Admin deleting question with ID: {}", id);
 		ApiResponse deleteQuestion = adminQuestionService.deleteQuestion(id);
 		return ResponseEntity.status(HttpStatus.OK).body(deleteQuestion);
 	}
+
+		/**
+	 *  Admin dashboard – list questions
+	 */
+	@GetMapping("/questions")
+	public ResponseEntity<ApiResponse> getAllQuestions(@RequestParam int pageNo, @RequestParam int pageRecords) {
+		logger.info("Admin requested all questions");
+		return ResponseEntity.ok(adminQuestionService.getAllQuestions(pageNo, pageRecords));
+	}
   	/**
 	 *  Admin submits assessment
 	 */
-	@PostMapping("/submit-assessment")
+	@PostMapping("/question")
 	public ResponseEntity<ApiResponse> submitAssessment(@RequestBody AssessmentRequest request) {
 		logger.info("Admin submitting assessment for user: {}", request.getTitle());
 		ApiResponse response = adminQuestionService.submitAssessment(request);
