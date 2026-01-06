@@ -72,11 +72,11 @@ public class QuestionServiceImp implements QuestionService {
 			question.setQuestionType(request.getQuestionType());
 
 			mapOptionsToEntity(request.getOptions(), question);
-            res.setId(question.getId());
+           
 			res.setQuestionText(question.getQuestionText());
 			res.setQuestionType(question.getQuestionType());
 			 questionRepository.save(question);
-				return new ApiResponse("Question created successfully", "Success", 200, null, 0);
+				return new ApiResponse("Question created successfully", "Success", 200, question, 0);
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("Error creating question: {}", e.getMessage());
